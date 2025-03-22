@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - Handicrafts Export</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Shopping Cart</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('show_products') }}">Home</a></li>
+                <li><a href="{{ url_for('show_products') }}">Categories</a></li>
+                <li><a href="{{ url_for('show_cart') }}">Cart</a></li>
+                <li>
+                    {% if session.get('user_id') %}
+                        <a href="{{ url_for('logout') }}">Logout ({{ session.get('user_name') }})</a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}">Login</a>
+                    {% endif %}
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="cart-container">
+        <h2>Your Cart</h2>
+
+        {% if cart %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Remove</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>₹{{ item.price }}</td>
+                            <td>
+                                <form action="{{ url_for('update_cart', product_id=item.id) }}" method="POST">
+                                    <input type="number" name="quantity" value="{{ item.quantity }}" min="1" style="width: 50px; text-align: center;">
+                                    <button type="submit" class="update-btn">Update</button>
+                                </form>
+                            </td>
+                            <td>₹{{ item.price * item.quantity }}</td>
+                            <td>
+                                <form action="{{ url_for('remove_from_cart', product_id=item.id) }}" method="POST">
+                                    <button type="submit" class="remove-btn">❌</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="cart-total">
+                <h3>Total Amount: ₹{{ total_price }}</h3>
+                <div class="cart-buttons">
+                    <a href="{{ url_for('clear_cart') }}" class="clear-cart-btn">🗑️ Clear Cart</a>
+                    
+                    <!-- ✅ Checkout Button -->
+                    {% if session.get('user_id') %}
+                        <a href="{{ url_for('checkout') }}" class="checkout-btn">💳 Proceed to Checkout</a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="checkout-btn">🔑 Login to Checkout</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <p class="empty-cart-msg">Your cart is empty! 🛒</p>
+        {% endif %}
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Handicrafts Export. All Rights Reserved.</p>
+    </footer>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #F5E1C0; /* Light brown (Oat color) */
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        header {
+            background-color: #8B5A2B; /* Brown */
+            color: white;
+            padding: 15px 0;
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+        nav ul li {
+            display: inline;
+            margin: 0 15px;
+        }
+        nav ul li a {
+            text-decoration: none;
+            color: white;
+            font-size: 16px;
+        }
+        .cart-container {
+            width: 80%;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border-bottom: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #D2B48C; /* Tan */
+        }
+        .update-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 3px 7px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        .remove-btn {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 3px 7px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        .cart-total {
+            margin-top: 20px;
+        }
+        .cart-buttons {
+            margin-top: 10px;
+        }
+        .clear-cart-btn {
+            background-color: #FF6347;
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .checkout-btn {
+            background-color: #007BFF;
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .empty-cart-msg {
+            font-size: 18px;
+            color: gray;
+        }
+        footer {
+            margin-top: 20px;
+            background-color: #8B5A2B;
+            color: white;
+            padding: 10px 0;
+        }
+    </style>
+</body>
+</html>
