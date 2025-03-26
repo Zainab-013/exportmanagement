@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Admin Dashboard</a>
+            <button class="btn btn-danger" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h2>Welcome, Admin</h2>
+
+        <!-- Product Management -->
+        <section class="mt-4">
+            <h3>Product Management</h3>
+            <button class="btn btn-primary" onclick="addProduct()">➕ Add Product</button>
+            <table class="table mt-3">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Vendor</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="productTable">
+                    <!-- Products will be loaded here dynamically -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Order Management -->
+        <section class="mt-4">
+            <h3>Order Management</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Total Price</th>
+                        <th>Status</th>
+                        <th>Update</th>
+                    </tr>
+                </thead>
+                <tbody id="orderTable">
+                    <!-- Orders will be loaded here dynamically -->
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <script>
+        function logout() {
+            alert("Logging out...");
+            window.location.href = "/logout";
+        }
+
+        function addProduct() {
+            let productTable = document.getElementById("productTable");
+            let newRow = `<tr>
+                <td>2</td>
+                <td>New Product</td>
+                <td>$150</td>
+                <td>Vendor Y</td>
+                <td>
+                    <button class='btn btn-warning btn-sm'>✏️ Edit</button>
+                    <button class='btn btn-danger btn-sm' onclick='deleteProduct(this)'>🗑️ Delete</button>
+                </td>
+            </tr>`;
+            productTable.innerHTML += newRow;
+        }
+
+        function deleteProduct(element) {
+            element.closest("tr").remove();
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

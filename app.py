@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from database import get_db_connection
-import bcrypt  # Password hashing ke liye
+import bcrypt
+import sqlite3
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -17,25 +18,29 @@ def register():
         name = request.form['name']
         email = request.form['email']
         password = request.form['password']
+        role = request.form['role']  # Capture role
 
-        # ✅ Hash password before storing
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        # ✅ Hash password correctly
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
         conn = get_db_connection()
         cursor = conn.cursor()
 
         try:
-            cursor.execute('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', (name, email, hashed_password))
+            # ✅ Insert hashed password and role into database
+            cursor.execute('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
+                           (name, email, hashed_password, role))
             conn.commit()
             conn.close()
             flash("✅ Registration successful! Please log in.", "success")
             return redirect(url_for('login'))
-        except:
+        except sqlite3.IntegrityError:
             flash("⚠ Email already exists! Try a different one.", "danger")
 
     return render_template('register.html')
 
-# ✅ **User Login**
+
+# ✅ **User Login with Role-Based Redirection**
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -48,153 +53,98 @@ def login():
         user = cursor.fetchone()
         conn.close()
 
-        if user and bcrypt.checkpw(password.encode('utf-8'), user['password']):
+        if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):  # ✅ Fix comparison
             session['user_id'] = user['id']
             session['user_name'] = user['name']
+            session['role'] = user['role']  # ✅ Store role in session
+
             flash("✅ Login successful!", "success")
-            return redirect(url_for('show_products'))
+
+            # ✅ Redirect based on user role
+            if user['role'] == "admin":
+                return redirect(url_for('admin_dashboard'))
+            elif user['role'] == "vendor":
+                return redirect(url_for('vendor_dashboard'))
+            else:
+                flash("⚠ Unauthorized role!", "danger")
+                return redirect(url_for('login'))
         else:
             flash("⚠ Invalid email or password!", "danger")
 
     return render_template('login.html')
 
+
 # ✅ **User Logout**
 @app.route('/logout')
 def logout():
-    session.pop('user_id', None)
-    session.pop('user_name', None)
+    session.clear()
     flash("✅ Logout successful!", "info")
     return redirect(url_for('login'))
 
-# 🛒 **Products Page**
-@app.route('/products')
-def show_products():
-    conn = get_db_connection()
-    products = conn.execute('SELECT * FROM products').fetchall()
-    conn.close()
-    return render_template('products.html', products=products)
+# ✅ **Admin Dashboard**
+@app.route('/admin_dashboard')
+def admin_dashboard():
+    if 'user_id' not in session or session.get('role') != 'admin':
+        flash("⚠ Unauthorized access!", "danger")
+        return redirect(url_for('login'))
+    return render_template('admin_dashboard.html')
 
-# 📄 **Product Details**
-@app.route('/product/<int:product_id>')
-def product_detail(product_id):
-    conn = get_db_connection()
-    product = conn.execute('SELECT * FROM products WHERE id = ?', (product_id,)).fetchone()
-    conn.close()
+# ✅ **Vendor Dashboard**
+@app.route('/vendor_dashboard')
+def vendor_dashboard():
+    if 'user_id' not in session or session.get('role') != 'vendor':
+        flash("⚠ Unauthorized access!", "danger")
+        return redirect(url_for('login'))
+    return render_template('vendor_dashboard.html')
 
-    if product:
-        return render_template('product_detail.html', product=product)
-    else:
-        return "Product Not Found", 404
-
-# 🛒 **Add to Cart**
-@app.route('/add_to_cart/<int:product_id>', methods=['POST'])
-def add_to_cart(product_id):
-    conn = get_db_connection()
-    product = conn.execute('SELECT * FROM products WHERE id = ?', (product_id,)).fetchone()
-    conn.close()
-
-    if not product:
-        return "Product Not Found", 404
-
-    if 'cart' not in session:
-        session['cart'] = []
-
-    for item in session['cart']:
-        if item['id'] == product_id:
-            item['quantity'] += 1
-            break
-    else:
-        session['cart'].append({
-            'id': product_id,
-            'name': product['name'],
-            'price': float(product['price']),
-            'quantity': 1
-        })
-
-    session.modified = True
-    flash("Item added to cart!", "success")
-    return redirect(url_for('show_cart'))
-
-# 🛍️ **Show Cart**
-@app.route('/cart')
-def show_cart():
-    cart = session.get('cart', [])
-    total_price = sum(item['price'] * item.get('quantity', 1) for item in cart)
-    return render_template('cart.html', cart=cart, total_price=total_price)
-
-# 🔄 **Update Cart Quantity**
-@app.route('/update_cart/<int:product_id>', methods=['POST'])
-def update_cart(product_id):
-    new_quantity = int(request.form.get('quantity', 1))
-    if 'cart' in session:
-        for item in session['cart']:
-            if item['id'] == product_id:
-                item['quantity'] = max(1, new_quantity)
-                break
-        session.modified = True
-    return redirect(url_for('show_cart'))
-
-# ❌ **Remove from Cart**
-@app.route('/remove_from_cart/<int:product_id>', methods=['POST'])
-def remove_from_cart(product_id):
-    if 'cart' in session:
-        session['cart'] = [item for item in session['cart'] if item['id'] != product_id]
-        session.modified = True
-    return redirect(url_for('show_cart'))
-
-# ❌ **Clear Cart**
-@app.route('/clear_cart')
-def clear_cart():
-    session.pop('cart', None)
-    return redirect(url_for('show_cart'))
-
-# ✅ **Checkout Page**
-@app.route('/checkout')
-def checkout():
-    cart = session.get('cart', [])
-    if not cart:
-        flash("Cart is empty!", "warning")
-        return redirect(url_for('show_products'))
-
-    total_price = sum(item['price'] * item['quantity'] for item in cart)
-    return render_template('checkout.html', cart=cart, total_price=total_price)
-
-# ✅ **Process Checkout**
-@app.route('/process_checkout', methods=['POST'])
-def process_checkout():
-    name = request.form.get('name')
-    address = request.form.get('address')
-    payment_method = request.form.get('payment')
-
-    if not name or not address or not payment_method:
-        flash("Please fill all required fields!", "danger")
-        return redirect(url_for('checkout'))
-
-    cart = session.get('cart', [])
-    if not cart:
-        flash("Cart is empty!", "warning")
-        return redirect(url_for('show_products'))
-
+# ✅ **Product Management** (Add/Delete Products)
+# ✅ **Add Product**
+@app.route('/add_product', methods=['POST'])
+def add_product():
+    if 'user_id' not in session or session.get('role') != 'admin':
+        return jsonify({'status': 'error', 'message': 'Unauthorized'}), 403
+    
+    name = request.form['name']
+    price = request.form['price']
+    vendor = request.form['vendor']
+    
     conn = get_db_connection()
     cursor = conn.cursor()
-
-    # ✅ Save Order to Database
-    cursor.execute("INSERT INTO orders (name, address, payment_method, total_amount) VALUES (?, ?, ?, ?)",
-                   (name, address, payment_method, sum(item['price'] * item['quantity'] for item in cart)))
-    order_id = cursor.lastrowid
-
-    # ✅ Save Ordered Items
-    for item in cart:
-        cursor.execute("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)",
-                       (order_id, item['id'], item['quantity'], item['price']))
-
+    cursor.execute('INSERT INTO products (name, price, vendor) VALUES (?, ?, ?)', (name, price, vendor))
     conn.commit()
     conn.close()
+    return jsonify({'status': 'success', 'message': 'Product added successfully'})
 
-    # 🛒 Clear Cart
-    session.pop('cart', None)
-    flash("Order Placed Successfully! ✅", "success")
-    return redirect(url_for('show_products'))
+# ✅ **Edit Product**
+@app.route('/edit_product/<int:product_id>', methods=['POST'])
+def edit_product(product_id):
+    if 'user_id' not in session or session.get('role') != 'admin':
+        return jsonify({'status': 'error', 'message': 'Unauthorized'}), 403
+    
+    name = request.form['name']
+    price = request.form['price']
+    vendor = request.form['vendor']
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('UPDATE products SET name=?, price=?, vendor=? WHERE id=?', (name, price, vendor, product_id))
+    conn.commit()
+    conn.close()
+    return jsonify({'status': 'success', 'message': 'Product updated successfully'})
+
+# ✅ **Delete Product**
+@app.route('/delete_product/<int:product_id>', methods=['POST'])
+def delete_product(product_id):
+    if 'user_id' not in session or session.get('role') != 'admin':
+        return jsonify({'status': 'error', 'message': 'Unauthorized'}), 403
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM products WHERE id=?', (product_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({'status': 'success', 'message': 'Product deleted successfully'})
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,0 +1,13 @@
+<html>
+<head>
+    <title>Manage Orders</title>
+</head>
+<body>
+    <h1>Manage Orders</h1>
+    <ul>
+        {% for order in orders %}
+            <li>Order #{{ order.id }} - Status: {{ order.status }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

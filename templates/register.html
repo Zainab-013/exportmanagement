@@ -17,6 +17,11 @@
             <input type="text" name="name" placeholder="Full Name" required>
             <input type="email" name="email" placeholder="Email Address" required>
             <input type="password" name="password" placeholder="Password" required>
+            <label for="role">Select Role:</label>
+    <select name="role" required>
+        <option value="vendor">Vendor</option>
+        <option value="admin">Admin</option>
+    </select>
             <button type="submit">Register</button>
         </form>
         <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>

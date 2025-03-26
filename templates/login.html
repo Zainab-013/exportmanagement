@@ -13,12 +13,30 @@
 
     <section class="auth-container">
         <h2>Login</h2>
+
+        <!-- ✅ Flash Messages for Login Errors -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-messages">
+                    {% for category, message in messages %}
+                        <li class="{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
         <form action="{{ url_for('login') }}" method="POST">
             <input type="email" name="email" placeholder="Enter Email" required>
             <input type="password" name="password" placeholder="Enter Password" required>
             <button type="submit">Login</button>
         </form>
+
         <p>New user? <a href="{{ url_for('register') }}">Register here</a></p>
+
+        <!-- ✅ Show Role Information After Login -->
+        {% if session['user_name'] %}
+            <p>Welcome, <strong>{{ session['user_name'] }}</strong> (Role: <strong>{{ session['role'] }}</strong>)</p>
+        {% endif %}
     </section>
 
     <footer>
