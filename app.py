@@ -61,8 +61,8 @@ def login():
             flash("✅ Login successful!", "success")
 
             # ✅ Redirect based on user role
-            if user['role'] == "admin":
-                return redirect(url_for('admin_dashboard'))
+            if user['role'] == "Export_Manager":
+                return redirect(url_for('Export_Manager_dashboard'))
             elif user['role'] == "vendor":
                 return redirect(url_for('vendor_dashboard'))
             else:
@@ -82,12 +82,12 @@ def logout():
     return redirect(url_for('login'))
 
 # ✅ **Admin Dashboard**
-@app.route('/admin_dashboard')
-def admin_dashboard():
-    if 'user_id' not in session or session.get('role') != 'admin':
+@app.route('/Export_Manager_dashboard')
+def Export_Manager_dashboard():
+    if 'user_id' not in session or session.get('role') != 'Export_Manager':
         flash("⚠ Unauthorized access!", "danger")
         return redirect(url_for('login'))
-    return render_template('admin_dashboard.html')
+    return render_template('Export_Manager_dashboard.html')
 
 # ✅ **Vendor Dashboard**
 @app.route('/vendor_dashboard')
