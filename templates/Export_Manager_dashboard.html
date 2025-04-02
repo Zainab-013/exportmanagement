@@ -3,87 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <title>Export Manager Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #F5E1C0;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        header {
+            background-color: #8B5A2B;
+            color: white;
+            padding: 15px;
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #8B5A2B;
+            color: white;
+        }
+        .generate-btn, .view-btn {
+            background-color: #FF9800;
+            color: white;
+            padding: 8px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 3px;
+        }
+        .view-btn {
+            background-color: #4CAF50; /* Green */
+        }
+    </style>
 </head>
 <body>
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Export Manager Dashboard</a>
-            <button class="btn btn-danger" onclick="logout()">Logout</button>
-        </div>
-    </nav>
+    <header>
+        <h1>Export Manager Dashboard</h1>
+    </header>
 
-    <div class="container mt-4">
-        <h2>Welcome, Export Manager</h2>
-
-        <!-- Product Management -->
-        <section class="mt-4">
-            <h3>Product Management</h3>
-            <button class="btn btn-primary" onclick="addProduct()">➕ Add Product</button>
-            <table class="table mt-3">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Price</th>
-                        <th>Vendor</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="productTable">
-                    <!-- Products will be loaded here dynamically -->
-                </tbody>
-            </table>
-        </section>
-
-        <!-- Order Management -->
-        <section class="mt-4">
-            <h3>Order Management</h3>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Order ID</th>
-                        <th>Customer</th>
-                        <th>Total Price</th>
-                        <th>Status</th>
-                        <th>Update</th>
-                    </tr>
-                </thead>
-                <tbody id="orderTable">
-                    <!-- Orders will be loaded here dynamically -->
-                </tbody>
-            </table>
-        </section>
-    </div>
-
-    <script>
-        function logout() {
-            alert("Logging out...");
-            window.location.href = "/logout";
-        }
-
-        function addProduct() {
-            let productTable = document.getElementById("productTable");
-            let newRow = `<tr>
-                <td>2</td>
-                <td>New Product</td>
-                <td>$150</td>
-                <td>Vendor Y</td>
-                <td>
-                    <button class='btn btn-warning btn-sm'>✏️ Edit</button>
-                    <button class='btn btn-danger btn-sm' onclick='deleteProduct(this)'>🗑️ Delete</button>
-                </td>
-            </tr>`;
-            productTable.innerHTML += newRow;
-        }
-
-        function deleteProduct(element) {
-            element.closest("tr").remove();
-        }
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <table>
+        <tr>
+            <th>Order ID</th>
+            <th>Vendor</th>
+            <th>Customer</th>
+            <th>Total Amount</th>
+            <th>Status</th>
+            <th>Documents</th>
+        </tr>
+        {% for order in orders %}
+        <tr>
+            <td>{{ order['id'] }}</td>
+            <td>{{ order['vendor'] }}</td>
+            <td>{{ order['user'] }}</td>
+            <td>₹{{ order['total_amount'] }}</td>
+            <td>{{ order['status'] }}</td>
+            <td>
+                <a href="{{ url_for('generate_documents', order_id=order['id']) }}" class="generate-btn">Generate PDF</a>
+            
+                {% if ('invoice_order_' ~ order['id'] ~ '.pdf') | file_exists %}
+                    <a href="{{ url_for('download_document', filename='invoice_order_' ~ order['id'] ~ '.pdf') }}" class="view-btn">📜 Invoice</a>
+                {% endif %}
+                
+                {% if ('bill_of_lading_order_' ~ order['id'] ~ '.pdf') | file_exists %}
+                    <a href="{{ url_for('download_document', filename='bill_of_lading_order_' ~ order['id'] ~ '.pdf') }}" class="view-btn">🚢 Bill</a>
+                {% endif %}
+                
+                {% if ('shipping_label_order_' ~ order['id'] ~ '.pdf') | file_exists %}
+                    <a href="{{ url_for('download_document', filename='shipping_label_order_' ~ order['id'] ~ '.pdf') }}" class="view-btn">📦 Label</a>
+                {% endif %}
+                
+                {% if ('insurance_certificate_order_' ~ order['id'] ~ '.pdf') | file_exists %}
+                    <a href="{{ url_for('download_document', filename='insurance_certificate_order_' ~ order['id'] ~ '.pdf') }}" class="view-btn">🛡 Insurance</a>
+                {% endif %}
+            </td>
+            
+        </tr>
+        {% endfor %}
+    </table>
 </body>
 </html>

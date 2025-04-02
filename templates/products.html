@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Products - Handicrafts Export</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Handicrafts Export - Products & Categories</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -91,6 +90,30 @@
             color: white;
             padding: 10px 0;
         }
+
+        .categories {
+            padding: 20px;
+        }
+
+        .categories h2{
+            margin-bottom: 20px;
+        }
+        .category {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+        }
+        .category img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 5px;
+        }
+        .category a {
+            text-decoration: none;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -98,28 +121,56 @@
         <h1>Explore Handicrafts</h1>
         <nav>
             <ul>
-                <li><a href="{{ url_for('show_products') }}">Home</a></li>
-                <li><a href="{{ url_for('show_products') }}">Categories</a></li>
-                <li><a href="{{ url_for('show_cart') }}">Cart</a></li>
-                <li><a href="#">Login</a></li>
+                <li><a href="#products">Products</a></li>
+                <li><a href="#categories">Categories</a></li>
+                <li><a href="/cart">Cart</a></li>
+                <li><a href="#login">Login</a></li>
             </ul>
         </nav>
     </header>
 
-    <section class="products-container">
+    <section id="products" class="products-container">
         {% for product in products %}
-            <div class="product-card">
-                <h3><a href="{{ url_for('product_detail', product_id=product['id']) }}">{{ product['name'] }}</a></h3>
-                <p>Price: ₹{{ product['price'] }}</p>
-                <form action="{{ url_for('add_to_cart', product_id=product['id']) }}" method="POST" class="add-to-cart-form">
-                    <input type="number" name="quantity" value="1" min="1">
-                    <button type="submit" class="add-to-cart-btn">🛒 Add to Cart</button>
-                </form>
-            </div>
+        <div class="product-card">
+            <h3>{{ product['name'] }}</h3>
+            <p>Price: ₹{{ product['price'] }}</p>
+            <form action="/add_to_cart/{{ product['id'] }}" method="POST" class="add-to-cart-form">
+                <input type="number" name="quantity" value="1" min="1">
+                <button type="submit" class="add-to-cart-btn">🛒 Add to Cart</button>
+            </form>
+        </div>
         {% endfor %}
     </section>
 
-    <a href="{{ url_for('show_cart') }}" class="cart-btn">🛒 View Cart</a>
+    <section id="categories" class="categories">
+        <h2>Choose a Category</h2>
+        <div class="category">
+            <a href="#sarees">
+                <img src="https://via.placeholder.com/150" alt="Sarees">
+                <p>Sarees</p>
+            </a>
+        </div>
+        <div class="category">
+            <a href="#pottery">
+                <img src="https://via.placeholder.com/150" alt="Pottery">
+                <p>Pottery</p>
+            </a>
+        </div>
+        <div class="category">
+            <a href="#wooden">
+                <img src="https://via.placeholder.com/150" alt="Wooden Items">
+                <p>Wooden Items</p>
+            </a>
+        </div>
+        <div class="category">
+            <a href="#paintings">
+                <img src="https://via.placeholder.com/150" alt="Paintings">
+                <p>Paintings</p>
+            </a>
+        </div>
+    </section>
+
+    <a href="/cart" class="cart-btn">🛒 View Cart</a>
 
     <footer>
         <p>&copy; 2025 Handicrafts Export. All Rights Reserved.</p>

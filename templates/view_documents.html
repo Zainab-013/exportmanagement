@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Documents</title>
+</head>
+<body>
+    <h1>Documents for Order #{{ order_id }}</h1>
+    <ul>
+        {% for doc, filename in files.items() %}
+            <li>
+                <a href="{{ url_for('download_document', filename=filename) }}">{{ doc }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

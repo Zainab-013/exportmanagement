@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment</title>
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #F8F9FA; text-align: center; }
+        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); width: 50%; margin: auto; margin-top: 50px; }
+        .pay-btn, .back-btn { background: #28A745; color: white; padding: 12px 20px; border: none; border-radius: 6px; font-size: 18px; cursor: pointer; }
+        .pay-btn:hover { background: #218838; } .back-btn { background: #007BFF; } .back-btn:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% if not success %}
+            <h2>Payment</h2>
+            <p><strong>Total Amount: ₹{{ total_price }}</strong></p>
+            <form action="{{ url_for('payment') }}" method="POST">
+                <button type="submit" class="pay-btn">Confirm Payment</button>
+            </form>
+        {% else %}
+            <h2>🎉 Order Placed Successfully! 🎉</h2>
+            <p>Thank you for your purchase.</p>
+            <a href="/" class="back-btn">Go to Home</a>
+        {% endif %}
+    </div>
+</body>
+</html>

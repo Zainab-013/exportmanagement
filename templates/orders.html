@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Orders</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Your Orders</h1>
+
+    {% if orders %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Total Amount</th>
+                    <th>Order Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>₹{{ order.total_amount }}</td>
+                    <td>{{ order.order_date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No orders placed yet.</p>
+    {% endif %}
+
+    <a href="{{ url_for('vendor_dashboard') }}">Back to Dashboard</a>
+</body>
+</html>
